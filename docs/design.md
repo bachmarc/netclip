@@ -99,6 +99,10 @@ liefert `cleared: true`, wenn seit letztem Abruf gecleart wurde → Client leert
   - `cleared: true` → Liste leeren, `last_id = 0`.
   - Sonst neue Posts **unten anhängen**, `last_id` aktualisieren, Auto-Scroll-Regel anwenden.
 - Absenden/„Clear"-Buttons → `POST` → sofortiger Poll (kein Warten aufs Intervall).
+- **Text-Markierung (REQ-014):** Kopfzeile jedes Posts (Zeit + IP) erhält
+  `user-select: none` — Maus-Markierung über mehrere Posts hinweg erfasst nur die
+  Post-**texte**, nicht Zeitstempel/IP. Copy-Paste liefert fortlaufend die reinen
+  Textinhalte (je Post ein Block).
 
 ## 5. Fehlerbehandlung
 
