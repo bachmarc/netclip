@@ -3,3 +3,4 @@ uvicorn[standard]
 pytest
 httpx
 ruff==0.16.7
+pyyaml==6.0.3
