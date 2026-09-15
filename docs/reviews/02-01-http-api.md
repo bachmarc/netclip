@@ -142,3 +142,66 @@ MALFORMED_JSON:    500 (JSONDecodeError, beide Routen)             ✗ SOLL 400
 Developer fixt auf `feature/02-01-http-api` (Fix-Aufträge 1-3), QA prüft erneut
 (Loop 2 von max. 3). PASS erst wenn alle ungültigen Bodies sauber 400 + `{"error": ...}`
 liefern und die neuen Tests grün sind.
+
+## Loop 2 (2026-09-15) — Re-Review nach Fix-Commit `e78caa8`
+
+- **Urteil:** ✅ **PASS (Loop 2/3)** — Freigabe für Merge nach `main` (wartet auf User-Go)
+- **Geprüfter Stand:** Commit `e78caa8` „fix(02-01): ungueltige bodies -> 400 statt 500"
+
+### Fix-Auftrags-Verifikation (alle 4 erfüllt)
+
+| # | Fix-Auftrag (Loop 1) | Ergebnis | Verifikation |
+|---|----------------------|----------|--------------|
+| 1 | `add_post`: JSONDecodeError → 400, isinstance-Prüfung `text: str`, keine inhaltliche Validierung im Adapter | ✅ | Manueller Spot-Check (TestClient): `{}` und `{"text": 123}` → 400 `{"error": 'Body muss {"text": str} enthalten.'}`; Adapter enthält kein `strip()`/`len()`/`max_text_length` (grep: 0 Treffer) — leer/zu lang weiterhin allein im Core (`board.py:29-34`) |
+| 2 | `clear`: JSONDecodeError → 400 | ✅ | Manuell: malformed JSON → 400 `{"error": 'Ungültiges JSON im Body.'}` |
+| 3 | 4 neue Tests (test-first, rot→grün) | ✅ | `tests/test_http_adapter.py`: 4 neue Body-Tests (malformed ×2, `{}`, `{"text": 123}`), alle grün; normaler `TestClient` ohne `raise_server_exceptions=False` (wie empfohlen) |
+| 4 | Commit-Konvention inkl. `red:`-Zeile | ✅ | Body: `symbols: create_app | breaks: none | affects: ... | tests: pytest 37 passed | red: 4 neue Tests schlugen fehl (500er)` — Red-Phase plausibel (4 Tests ↔ 4 Loop-1-Reproduktionen ↔ 500er-Verhalten des Loop-1-Stands) |
+
+### Spot-Check-Outputs (TestClient, echte Requests)
+
+```
+POST /api/posts malformed:      400 {'error': 'Ungültiges JSON im Body.'}       OK
+POST /api/posts {}:             400 {'error': 'Body muss {"text": str} ...'}    OK
+POST /api/posts {"text": 123}:  400 {'error': 'Body muss {"text": str} ...'}    OK
+POST /api/clear malformed:      400 {'error': 'Ungültiges JSON im Body.'}       OK
+--- Regressionen (Loop-1-Positivfälle + Happy Path) ---
+POST /api/posts leerer Text:    400 {'error': 'Text darf nicht leer sein.'}     OK
+POST /api/posts zu lang (Limit injiziert): 400 {'error': 'Text ist zu lang ...'} OK
+POST /api/clear mode=bogus:     400 {'error': "mode muss 'all' oder 'last' sein."} OK
+POST /api/clear mode fehlt:     400 (dito)                                     OK
+POST /api/posts happy / clear all|last / GET /api/posts / GET /:  alle 200      OK
+ERGEBNIS: 13/13 OK
+```
+
+### Verifikations-Logs Loop 2
+
+```
+$ pytest -q
+37 passed, 1 warning in 0.58s          # Erwartung 33 + 4 = 37 ✓ (Warnung umweltbedingt, s. Loop 1)
+
+$ ruff check .
+All checks passed!
+
+$ git show e78caa8 --stat
+ src/adapters/http.py       | 21 ++++++++++++++++--   # Diff-Hygiene: nur die 2 geforderten
+ tests/test_http_adapter.py | 45 +++++++++++++++++++++++++++++-   # Dateien, kein Streu-Commit
+
+$ git diff $(git merge-base main HEAD)..HEAD -- src/core/  →  leer  (Core unverändert ✓)
+
+$ grep -rn "uvicorn" tests/ src/adapters/  →  0 Treffer
+```
+
+### Beobachtungen Loop 2 (keine FAIL-Gründe)
+
+1. **main-Skew neu:** `main` hat seit Branch-Fork einen zusätzlichen Commit
+   (`a73b673`, chore/Permissions — kein Code). `git merge-tree --write-tree main HEAD` →
+   konfliktfrei, kein Handlungsbedarf.
+2. **Kosmetik:** `tests/test_http_adapter.py` endet ohne Newline am Dateiende
+   (vgl. `00-03` POSIX-Newline-Konvention). Kein Story-Kriterium, kein lint-Bruch —
+   Hinweis für ggf. Aufräumen im nächsten Touch der Datei (nicht blockierend).
+3. QP-Selbstkorrektur dokumentiert: Erster Spot-Check lief „zu lang → 200" — Ursache war
+   ein QA-Skriptfehler (`create_app()`-Default-Limit 100 000 statt injiziertem Limit);
+   mit `PostBoard(max_text_length=100)` injiziert korrekt 400. Kein Produktionsfehler.
+4. Schema-Prüfung im Adapter ist bewusst minimal (`isinstance(body, dict)`,
+   `isinstance(text, str)`): Non-Dict-Bodies (z. B. `[1,2]`) laufen sauber in den
+   400-Zweig — konsistent mit Fix-Auftrag 1 („Typprüfung des Body-Schemas ist Adapter-Arbeit").
