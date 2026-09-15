@@ -59,6 +59,9 @@ Strikte Trennung (Muster: `intesis_modbus/CLAUDE.md`):
 - Keine unangefragten Features außerhalb der Developer Targets.
 - Keine Imports von IO/Framework in `src/core/`.
 - Kein `git init`/Schreiben außerhalb des Projekt-Pfads.
+- **Subagent-Pfad-Disziplin**: Alle Befehle ausschließlich im zugeteilten Worktree;
+  kein `/tmp`, kein `pip install`, keine Pfade außerhalb des Projekt-Roots.
+  (Ask-Gates blockieren autonome Läufe — Red-Phase-Nachweise via `git stash` statt /tmp-Kopien.)
 
 ## Referenzen
 

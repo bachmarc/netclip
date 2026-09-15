@@ -1,3 +1,50 @@
 {
-  "$schema": "https://opencode.ai/config.json"
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "edit": "allow",
+    "task": "allow",
+    "todowrite": "allow",
+    "bash": {
+      "*": "ask",
+      "git status*": "allow",
+      "git log*": "allow",
+      "git branch*": "allow",
+      "git checkout*": "allow",
+      "git switch*": "allow",
+      "git add*": "allow",
+      "git commit*": "allow",
+      "git diff*": "allow",
+      "git show*": "allow",
+      "git stash*": "allow",
+      "git restore*": "allow",
+      "git merge*": "allow",
+      "git worktree*": "allow",
+      "git init*": "allow",
+      "git merge-base*": "allow",
+      "pytest*": "allow",
+      "ruff*": "allow",
+      "python3 *": "allow",
+      "python *": "allow",
+      "mkdir *": "allow",
+      "touch *": "allow",
+      "ls*": "allow",
+      "cat *": "allow",
+      "head *": "allow",
+      "tail *": "allow",
+      "grep*": "allow",
+      "rg*": "allow",
+      "find *": "allow",
+      "wc *": "allow",
+      "which *": "allow",
+      "diff *": "allow",
+      "for *": "allow",
+      "docker build*": "allow",
+      "docker --version*": "allow"
+    },
+    "external_directory": {
+      "*": "ask",
+      "/mnt/content_main/Development/test/**": "allow",
+      "/tmp/opencode/**": "allow"
+    }
+  }
 }
