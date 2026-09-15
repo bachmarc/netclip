@@ -1,0 +1,16 @@
+# Story 03-01: Build-Kontext schlank halten (keine Tests/Dokumentation im Image)
+__pycache__/
+*.py[cod]
+.git/
+.gitignore
+tests/
+docs/
+.worktrees/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+opencode.json
+README.md
+Dockerfile
+docker-compose.yml
