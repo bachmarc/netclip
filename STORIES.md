@@ -21,7 +21,7 @@
 | [02-01-http-api](docs/stories/02-01-http-api.md) | FastAPI-Adapter (API) | Erledigt (QA-PASS, Loop 2) | `feature/02-01-http-api` | REQ-001/003/009/012 → §1, §4 |
 | [02-02-web-frontend](docs/stories/02-02-web-frontend.md) | Frontend (Seite + Polling) | Erledigt (QA-PASS, Loop 1) | `feature/02-02-web-frontend` | REQ-002/003/004/005/006/009 → §4a |
 | [03-01-docker-ci](docs/stories/03-01-docker-ci.md) | Docker + GitHub Actions CI | Erledigt (QA-PASS, Loop 1; Docker-SMOKE ✓) | `feature/03-01-docker-ci` | NFR-001/003 → §6 |
-| [04-01-chat-layout](docs/stories/04-01-chat-layout.md) | Chat-Layout: chronologisch, Eingabe unten | Geplant | `feature/04-01-chat-layout` | REQ-013 → §4a (rev.) |
+| [04-01-chat-layout](docs/stories/04-01-chat-layout.md) | Chat-Layout: chronologisch, Eingabe unten | Erledigt (QA-PASS, Loop 1; User-Go nach Planungs-Checkpoint) | `feature/04-01-chat-layout` | REQ-013 → §4a (rev.) |
 
 ## QA-Protokolle
 
