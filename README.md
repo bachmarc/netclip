@@ -17,10 +17,10 @@
 
 - [x] Phase 0: Folder + Git eingerichtet
 - [x] Phase 1: Requirements & Design (`docs/requirements.md`, `docs/design.md`)
-- [ ] Phase 2: Stories (`STORIES.md`, `docs/stories/`)
-- [ ] Phase 3: Tests zuerst
-- [ ] Phase 4: Implementierung (Feature-Branches)
-- [ ] Phase 5: QA-Gate
+- [x] Phase 2: Stories (`STORIES.md`, `docs/stories/`)
+- [x] Phase 3: Tests zuerst (Fake-basiert, vor Implementierung)
+- [x] Phase 4: Implementierung (Feature-Branches, alle Stories erledigt)
+- [x] Phase 5: QA-Gate (alle Stories PASS; 48 Tests grün; Docker-SMOKE erfolgreich)
 
 ## Struktur
 
