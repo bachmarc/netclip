@@ -1,4 +1,6 @@
-# NetClip CI (Story 03-01, Design §6): pytest + ruff + Docker-Build, kein Push.
+# NetClip CI (Story 03-01, Design §6): pytest + ruff + Docker-Build.
+# Story 08-01 (REQ-017, Design §6): bei Push auf main → ghcr.io (Tags: latest + SHA).
+# PRs bauen nur — sie pushen nie (Guard: github.event_name == 'push' && github.ref == 'refs/heads/main').
 name: CI
 
 on:
@@ -22,7 +24,23 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
+    needs: lint-test
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v7
-      - name: Build image (no push)
-        run: docker build .
+      - name: Login to ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/bachmarc/netclip:latest
+            ghcr.io/bachmarc/netclip:${{ github.sha }}
