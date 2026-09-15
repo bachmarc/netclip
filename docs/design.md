@@ -125,7 +125,17 @@ liefert `cleared: true`, wenn seit letztem Abruf gecleart wurde → Client leert
 - **Dockerfile**: `python:3.12-slim`, `pip install -r requirements.txt`, non-root User,
   `CMD ["python", "-m", "src.adapters.main"]`.
 - **docker-compose.yml**: Port `8000:8000` (via ENV `PORT`), `MAX_POSTS`, `MAX_TEXT_LENGTH` als ENV.
-- **GitHub Actions** (`.github/workflows/ci.yml`): Jobs `pytest` + `ruff check`, Docker-Build (kein Push ohne Registry-Secret).
+- **GitHub Actions** (`.github/workflows/ci.yml`): Jobs `pytest` + `ruff check`, Docker-Build.
+- **Registry-Push (REQ-017):** Bei Push auf `main` (nicht bei Pull Requests) pusht der
+  `docker-build`-Job das Image nach **ghcr.io**:
+  - Login: `docker/login-action` mit dem automatisch bereitgestellten `GITHUB_TOKEN`
+    (Permissions im Workflow: `packages: write`) — **keine manuellen Secrets nötig**
+  - Tags: `ghcr.io/bachmarc/netclip:latest` + `ghcr.io/bachmarc/netclip:<short-sha>`
+  - `docker/metadata-action` für Labels (SHA, Commit-Titel)
+  - Nur wenn `lint-test` erfolgreich war (`needs: lint-test`) — kein kaputtes Image in der Registry
+- **docker-compose.yml**: erhält `image: ghcr.io/bachmarc/netclip:latest` ZUSÄTZLICH zu
+  `build: .` — damit funktioniert beides: `docker compose pull && docker compose up -d`
+  (Registry-Deploy ohne Repo) UND lokales Bauen aus dem Quellcode.
 - ENV-Konfig: `PORT` (default 8000), `MAX_POSTS` (3000), `MAX_TEXT_LENGTH` (100000).
 
 ## 7. Versionierung

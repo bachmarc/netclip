@@ -34,6 +34,7 @@ RAM-only: Nach Restart (oder „Clear all") ist alles weg. Kein Langzeit-Chat-Ar
 | REQ-014 | Maus-Markierung kopierbar über mehrere Posts hinweg — **ohne Zeitstempel und IP**: Kopfzeile (Zeit + IP) ist nicht markierbar (`user-select: none`), nur Post-Texte landen in der Auswahl/Zwischenablage | Muss |
 | REQ-015 | Keine doppelten Posts durch Mehrfach-Klick: „Senden" ist während eines laufenden Requests deaktiviert (Guard); ein Doppel-/Mehrfachklick erzeugt genau einen Post | Muss |
 | REQ-016 | Eingabefeld wächst mit dem Text mit (auto-resize): Ab der vorletzten Zeile vergrößert sich die Textarea (bis max. ~40vh), scrollt intern wenn der Text höher wird; verkleinert sich beim Leeren/Reset wieder auf die Ausgangshöhe | Muss |
+| REQ-017 | CI pusht das Docker-Image bei jedem Push auf `main` nach `ghcr.io` (Tags: `latest` + Commit-SHA); das Image ist pullbar (`docker compose pull`) — Deploy auf LAN-Rechnern ohne Repo-Clone/-Build | Muss |
 
 ## Nicht-funktionale Requirements
 
