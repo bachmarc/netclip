@@ -32,13 +32,34 @@ src/web/         Statische Seite (HTML+JS, Deutsch), Polling-Client
 tests/fakes/     Fake-Interfaces (FakeClock) für alle externen Abhängigkeiten
 ```
 
-## Betrieb (später, nach Implementierung)
+## Betrieb
+
+### Docker (empfohlen)
 
 ```bash
-docker compose up        # erreichbar unter http://<host>:8000
+docker compose up        # baut Image, startet Container → http://<host>:8000
 ```
 
-Konfiguration per ENV: `PORT` (8000), `MAX_POSTS` (3000), `MAX_TEXT_LENGTH` (100000).
+Der Container läuft als non-root User; `restart: unless-stopped` hält NetClip
+über Neustarts hinweg aktiv.
+
+### Manuell (Python 3.12+)
+
+```bash
+pip install -r requirements.txt
+python -m src.adapters.main
+```
+
+### Konfiguration per ENV
+
+| ENV-Variable       | Default  | Bedeutung                                    |
+|--------------------|----------|----------------------------------------------|
+| `PORT`             | `8000`   | HTTP-Port (uvicorn, host `0.0.0.0`)          |
+| `MAX_POSTS`        | `3000`   | FIFO-Limit — älteste Posts fallen heraus     |
+| `MAX_TEXT_LENGTH`  | `100000` | Maximale Zeichen pro Post                    |
+
+Die Defaults entsprechen dem Code in `src/adapters/main.py` (`build_app()`);
+`docker-compose.yml` setzt dieselben Werte explizit.
 
 ## Entwicklung
 

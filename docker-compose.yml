@@ -1,0 +1,11 @@
+# NetClip — LAN-Zwischenablage (Story 03-01, Design §6)
+services:
+  netclip:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      PORT: "8000"
+      MAX_POSTS: "3000"
+      MAX_TEXT_LENGTH: "100000"
+    restart: unless-stopped
