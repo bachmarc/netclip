@@ -20,7 +20,7 @@ class PostBoard:
         self._posts: deque[dict] = deque(maxlen=max_posts)
         self._max_text_length = max_text_length
         self._next_id = 1
-        self._cleared = False
+        self._clear_version = 0
 
     # --- Write ---------------------------------------------------------------
 
@@ -45,21 +45,20 @@ class PostBoard:
     # --- Clear ---------------------------------------------------------------
 
     def clear_all(self) -> None:
-        """Entfernt alle Posts und setzt das Clear-Signal."""
+        """Entfernt alle Posts und inkrementiert die Clear-Version (REQ-019)."""
         self._posts.clear()
-        self._cleared = True
+        self._clear_version += 1
 
     def clear_last(self) -> None:
-        """Entfernt den letzten Post (falls vorhanden) und setzt das Clear-Signal."""
+        """Entfernt den letzten Post (falls vorhanden) und inkrementiert die Version."""
         if self._posts:
             self._posts.pop()
-        self._cleared = True
+        self._clear_version += 1
 
-    def consume_cleared(self) -> bool:
-        """Liefert ``True`` genau einmal nach clear_all/clear_last, danach wieder ``False``."""
-        was_cleared = self._cleared
-        self._cleared = False
-        return was_cleared
+    @property
+    def clear_version(self) -> int:
+        """Monotoner Zähler, inkrementiert bei jedem clear_all/clear_last."""
+        return self._clear_version
 
     # --- Read ----------------------------------------------------------------
 

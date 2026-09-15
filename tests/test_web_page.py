@@ -259,3 +259,18 @@ def test_web_index_html_auto_grow_textarea() -> None:
         assert "style.height" in definition.group(1), (
             "Reset-Funktion muss die Höhe zurücksetzen (style.height)"
         )
+
+
+# ---------------------------------------------------------------------------
+# Story 09-02: Clear-Sync via Version (REQ-019, Design §4/§4a)
+# ---------------------------------------------------------------------------
+
+
+def test_web_index_html_polling_nutzt_clear_version() -> None:
+    # Contract (REQ-019): Polling vergleicht clear_version statt consume-once-Flag.
+    content = WEB_INDEX.read_text(encoding="utf-8")
+
+    assert "clear_version" in content, "clear_version-Handling fehlt im Frontend"
+    assert "lastClearVersion" in content, "gespeicherte clear_version fehlt"
+    # altes Flag darf nicht mehr im Polling-Pfad verwendet werden
+    assert "daten.cleared" not in content, "altes cleared-Flag noch im JS (sollte clear_version sein)"
