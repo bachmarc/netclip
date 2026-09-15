@@ -15,6 +15,7 @@
 | 6 | UX-Fixes (User-Feedback) | 06-01-send-guard-autogrow |
 | 7 | CI-Reparatur | 07-01-ci-fix (direkt, kein QA-Loop) |
 | 8 | Registry-Deployment | 08-01-ghcr-push |
+| 9 | Reverse-Proxy-Support | 09-01-xff-client-ip |
 
 ## Index
 
@@ -30,6 +31,7 @@
 | [06-01-send-guard-autogrow](docs/stories/06-01-send-guard-autogrow.md) | Send-Guard + Auto-Grow-Textarea | Erledigt (QA-PASS, Loop 1; User-Go nach Planungs-Checkpoint) | `feature/06-01-send-guard-autogrow` | REQ-015, REQ-016 → §4a |
 | [07-01-ci-fix](docs/reviews/00-01-setup.md) | CI grün: ruff-Pin + Node-24-Actions | Erledigt (direkte Umsetzung nach User-Go; CI-Verifikation grün) | `main` (8d38bda) | CI-Stabilität → §6 |
 | [08-01-ghcr-push](docs/stories/08-01-ghcr-push.md) | GHCR-Registry-Push (pullbares Image) | Erledigt (QA-PASS, Loop 1; User-Go; Registry-Pull verifiziert) | `feature/08-01-ghcr-push` | REQ-017 → §6 |
+| [09-01-xff-client-ip](docs/stories/09-01-xff-client-ip.md) | Echte Client-IP hinter Reverse-Proxy (XFF) | Geplant | `feature/09-01-xff-client-ip` | REQ-018 → §1 |
 
 ## QA-Protokolle
 

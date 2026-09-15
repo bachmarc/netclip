@@ -40,7 +40,11 @@ class PostBoard:
 
 - Factory: `create_app(board: PostBoard | None = None, now_fn: Callable[[], datetime] | None = None) -> FastAPI`
   (Defaults: frisches `PostBoard()`, `lambda: datetime.now(timezone.utc)`; Board zusätzlich in `app.state.board` ablegen).
-- Extrahiert Text aus Request-Body, Client-IP (`request.client.host`) aus Request, delegiert an `PostBoard`.
+- Extrahiert Text aus Request-Body, Client-IP aus Request, delegiert an `PostBoard`.
+- **Absender-IP (REQ-018):** Helper `_sender_ip(request)`: falls Header `X-Forwarded-For`
+  vorhanden → erste IP der Komma-Kette (Client, Proxy, …), sonst Fallback
+  `request.client.host`. Vertrauensmodell LAN: XFF ist bei Direktzugriff ohne Proxy
+  fälschbar — die IP-Anzeige ist informativ, kein Auth.
 - `now` kommt aus `now_fn()` — injizierbar für deterministische Tests.
 - Mapping: `ValueError` → HTTP 400 mit Meldung; ungültiger Body/Mode → HTTP 400.
 - Route `GET /`: liefert `src/web/index.html`, falls vorhanden; sonst deutschen HTML-Platzhalter

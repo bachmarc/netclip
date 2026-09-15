@@ -35,6 +35,7 @@ RAM-only: Nach Restart (oder „Clear all") ist alles weg. Kein Langzeit-Chat-Ar
 | REQ-015 | Keine doppelten Posts durch Mehrfach-Klick: „Senden" ist während eines laufenden Requests deaktiviert (Guard); ein Doppel-/Mehrfachklick erzeugt genau einen Post | Muss |
 | REQ-016 | Eingabefeld wächst mit dem Text mit (auto-resize): Ab der vorletzten Zeile vergrößert sich die Textarea (bis max. ~40vh), scrollt intern wenn der Text höher wird; verkleinert sich beim Leeren/Reset wieder auf die Ausgangshöhe | Muss |
 | REQ-017 | CI pusht das Docker-Image bei jedem Push auf `main` nach `ghcr.io` (Tags: `latest` + Commit-SHA); das Image ist pullbar (`docker compose pull`) — Deploy auf LAN-Rechnern ohne Repo-Clone/-Build | Muss |
+| REQ-018 | Echte Client-IP hinter Reverse-Proxy: Absenderkennung = erste IP aus `X-Forwarded-For`, falls Header vorhanden; sonst TCP-Peer (`request.client.host`). Vertrauensmodell LAN — XFF ist bei Direktzugriff fälschbar, die IP-Anzeige ist informativ, kein Auth-Mechanismus | Muss |
 
 ## Nicht-funktionale Requirements
 
