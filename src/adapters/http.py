@@ -24,6 +24,18 @@ _PLACEHOLDER_HTML = """<!DOCTYPE html>
 </html>"""
 
 
+def _sender_ip(request: Request) -> str:
+    """REQ-018, Design §1: echte Client-IP hinter Reverse-Proxy.
+
+    Erste IP der ``X-Forwarded-For``-Kette (Client, Proxy, …); Fallback: TCP-Peer-IP.
+    Vertrauensmodell LAN — XFF bei Direktzugriff fälschbar, IP-Anzeige informativ.
+    """
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff.strip():
+        return xff.split(",")[0].strip()
+    return request.client.host
+
+
 def create_app(
     board: PostBoard | None = None,
     now_fn: Callable[[], datetime] | None = None,
@@ -73,7 +85,7 @@ def create_app(
                 status_code=400, detail='Body muss {"text": str} enthalten.'
             )
         try:
-            return {"post": board.add_post(text, request.client.host, now_fn())}
+            return {"post": board.add_post(text, _sender_ip(request), now_fn())}
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
