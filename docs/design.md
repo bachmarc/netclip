@@ -23,8 +23,11 @@ class PostBoard:
     def clear_last(self) -> None: ...
     def get_posts(self, since_id: int = 0) -> list[dict]:
         """Posts mit id > since_id, aufsteigend. since_id=0 → alle."""
-    def simuliere_post(self, text: str = "test") -> dict:
-        """Test-Helper: fügt Post mit deterministischer Zeit/IP hinzu."""
+    def consume_cleared(self) -> bool:
+        """True genau einmal nach clear_all/clear_last (Clear-Signal für §4), danach False."""
+    def simuliere_post(self, text: str = "test", sender: str = "test-ip",
+                      now: datetime | None = None) -> dict:
+        """Test-Helper: fügt Post hinzu (Default-Zeit 2026-01-01T12:00 UTC, deterministisch)."""
 ```
 
 - Speicher: `deque(maxlen=max_posts)` + monotoner ID-Counter.
@@ -35,9 +38,13 @@ class PostBoard:
 
 **`src/adapters/http.py` — FastAPI-App (3-10 Zeilen pro Route):**
 
-- Extrahiert Text aus Request-Body, Client-IP aus Request, delegiert an `PostBoard`.
-- `now` wird im Adapter geholt (z.B. `datetime.now(UTC)`) — Core bleibt rein.
-- Mapping: `ValueError` → HTTP 400 mit Meldung.
+- Factory: `create_app(board: PostBoard | None = None, now_fn: Callable[[], datetime] | None = None) -> FastAPI`
+  (Defaults: frisches `PostBoard()`, `lambda: datetime.now(timezone.utc)`; Board zusätzlich in `app.state.board` ablegen).
+- Extrahiert Text aus Request-Body, Client-IP (`request.client.host`) aus Request, delegiert an `PostBoard`.
+- `now` kommt aus `now_fn()` — injizierbar für deterministische Tests.
+- Mapping: `ValueError` → HTTP 400 mit Meldung; ungültiger Body/Mode → HTTP 400.
+- Route `GET /`: liefert `src/web/index.html`, falls vorhanden; sonst deutschen HTML-Platzhalter
+  („NetClip – Frontend folgt") → erlaubt parallele Entwicklung Frontend/API ohne Branchkonflikt.
 - **Timer/Listener ausschließlich hier** — hier: keiner nötig (RAM-only, kein Auto-Clear).
 
 **`src/web/index.html`** — statische Seite (kein Build-Step, pures HTML+JS):
@@ -95,7 +102,10 @@ liefert `cleared: true`, wenn seit letztem Abruf gecleart wurde → Client leert
 
 ## 6. Deployment
 
-- **Dockerfile**: `python:3.12-slim`, `pip install -r requirements.txt`, `CMD uvicorn`.
+- **Launcher `src/adapters/main.py`**: `build_app()` (liest `MAX_POSTS`, `MAX_TEXT_LENGTH` aus ENV),
+  `main()` startet `uvicorn.run(build_app(), host="0.0.0.0", port=int(os.getenv("PORT", 8000)))`.
+- **Dockerfile**: `python:3.12-slim`, `pip install -r requirements.txt`, non-root User,
+  `CMD ["python", "-m", "src.adapters.main"]`.
 - **docker-compose.yml**: Port `8000:8000` (via ENV `PORT`), `MAX_POSTS`, `MAX_TEXT_LENGTH` als ENV.
 - **GitHub Actions** (`.github/workflows/ci.yml`): Jobs `pytest` + `ruff check`, Docker-Build (kein Push ohne Registry-Secret).
 - ENV-Konfig: `PORT` (default 8000), `MAX_POSTS` (3000), `MAX_TEXT_LENGTH` (100000).
