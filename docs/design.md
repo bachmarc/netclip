@@ -103,6 +103,14 @@ liefert `cleared: true`, wenn seit letztem Abruf gecleart wurde → Client leert
   `user-select: none` — Maus-Markierung über mehrere Posts hinweg erfasst nur die
   Post-**texte**, nicht Zeitstempel/IP. Copy-Paste liefert fortlaufend die reinen
   Textinhalte (je Post ein Block).
+- **Send-Guard (REQ-015):** Der „Senden"-Button wird während des laufenden POST-Requests
+  deaktiviert (`disabled`); Doppel-/Mehrfachklicks erzeugen genau einen Post. Nach Antwort
+  (Erfolg oder Fehler) wird er wieder aktiviert. `await senden()` bleibt idempotent pro Klick.
+- **Auto-Grow-Textarea (REQ-016):** Textarea passt ihre Höhe per `input`-Event an
+  (`style.height = 'auto'` → `style.height = scrollHeight + 'px'`, geklemmt auf
+  `min-height` ~2 Zeilen bis `max-height` ~40vh). Wächst ab dem Moment, in dem der
+  Text mehr Platz braucht (ab der „vorletzten Zeile" spürbar), scrollt intern, wenn das
+  Maximum erreicht ist. Nach erfolgreichem Senden/Leeren: Reset auf Ausgangshöhe.
 
 ## 5. Fehlerbehandlung
 
