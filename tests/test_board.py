@@ -4,7 +4,7 @@ Nur Core + FakeClock — kein FastAPI, kein Server, kein Netz (REQ-002, REQ-004,
 REQ-005, REQ-006, REQ-007, REQ-010, REQ-011).
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.core.board import PostBoard
 from tests.fakes.fake_clock import DEFAULT_START, FakeClock
@@ -262,7 +262,7 @@ def test_simuliere_post_ohne_argumente_deterministisch() -> None:
         "sender": "test-ip",
         "timestamp": DEFAULT_START.isoformat(),
     }
-    assert DEFAULT_START == datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    assert DEFAULT_START == datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
     assert [p["id"] for p in board.get_posts()] == [1]
 
 

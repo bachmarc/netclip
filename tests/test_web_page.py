@@ -15,8 +15,8 @@ des laufenden POST-Requests) + Auto-Grow-Textarea (input-Listener, scrollHeight,
 max-height 40vh, Reset nach erfolgreichem Senden).
 """
 
-from pathlib import Path
 import re
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 

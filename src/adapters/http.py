@@ -8,9 +8,9 @@ Kein Socket im Test-Pfad: ``fastapi.testclient.TestClient`` läuft ohne lauschen
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Callable
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -30,7 +30,7 @@ def create_app(
 ) -> FastAPI:
     """Baut die FastAPI-App; ``board``/``now_fn`` injizierbar (deterministische Tests)."""
     board = board if board is not None else PostBoard()
-    now_fn = now_fn if now_fn is not None else (lambda: datetime.now(timezone.utc))
+    now_fn = now_fn if now_fn is not None else (lambda: datetime.now(UTC))
 
     app = FastAPI(title="NetClip")
     app.state.board = board

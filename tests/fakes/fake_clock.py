@@ -6,9 +6,9 @@ Läuft ohne externe Systeme, nur stdlib.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
-DEFAULT_START = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+DEFAULT_START = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
 
 
 class FakeClock:

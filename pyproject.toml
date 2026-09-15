@@ -10,3 +10,8 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 100
 extend-exclude = [".worktrees"]
+
+[tool.ruff.lint]
+# EXE002 deaktiviert: Repo liegt auf CIFS-Mount (file_mode=0755) — alle Dateien
+# erscheinen dort als ausführbar; chmod wirkungslos. Keine echten Skripte im Projekt.
+ignore = ["EXE002"]

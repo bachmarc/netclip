@@ -31,7 +31,7 @@ def _build_app_clean_env(monkeypatch: pytest.MonkeyPatch) -> FastAPI:
 
 def _limits(board: PostBoard) -> tuple[int, int]:
     """Extrahiert die Board-Limits (deque-maxlen bzw. Textlimit)."""
-    return board._posts.maxlen or 0, board._max_text_length  # noqa: SLF001
+    return board._posts.maxlen or 0, board._max_text_length
 
 
 def test_build_app_ohne_env_nutzt_defaults(

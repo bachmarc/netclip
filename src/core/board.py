@@ -8,9 +8,9 @@ Zeit kommt ausschließlich als Parameter (``now``); Konfiguration (``max_posts``
 from __future__ import annotations
 
 from collections import deque
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-DEFAULT_SIMULATION_TIME = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+DEFAULT_SIMULATION_TIME = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
 
 
 class PostBoard:

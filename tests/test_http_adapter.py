@@ -5,7 +5,7 @@ Board und ``now_fn`` werden injiziert (deterministisch). Deckt Design §4 (API-S
 und §5 (Fehlerbehandlung) ab (REQ-001, REQ-003, REQ-009, REQ-012).
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 from src.adapters.http import create_app
 from src.core.board import PostBoard
 
-FIXED_TIME = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+FIXED_TIME = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
 WEB_INDEX = Path(__file__).resolve().parents[1] / "src" / "web" / "index.html"
 
 
