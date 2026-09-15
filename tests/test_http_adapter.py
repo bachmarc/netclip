@@ -186,6 +186,58 @@ def test_board_injektion_app_state_board_ist_dasselbe_objekt() -> None:
     assert [p["text"] for p in board.get_posts()] == ["injiziert"]
 
 
+# --- Absender-IP hinter Reverse-Proxy (Story 09-01, REQ-018, Design §1) ------
+# Header-Injektion via TestClient simuliert den Proxy — kein Netz.
+
+
+def test_post_mit_xff_header_nutzt_erste_ip_als_sender() -> None:
+    client, _, _ = _client()
+
+    response = client.post(
+        "/api/posts",
+        json={"text": "hinter proxy"},
+        headers={"X-Forwarded-For": "192.168.111.42"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["post"]["sender"] == "192.168.111.42"
+
+
+def test_post_mit_xff_proxy_kette_nutzt_erste_ip_der_kette() -> None:
+    client, _, _ = _client()
+
+    response = client.post(
+        "/api/posts",
+        json={"text": "kette"},
+        headers={"X-Forwarded-For": "192.168.111.42, 172.22.0.1"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["post"]["sender"] == "192.168.111.42"
+
+
+def test_post_ohne_xff_header_behaelt_fallback_tcp_peer_ip() -> None:
+    client, _, _ = _client()
+
+    response = client.post("/api/posts", json={"text": "direktzugriff"})
+
+    assert response.status_code == 200
+    assert response.json()["post"]["sender"] == "testclient"
+
+
+def test_post_mit_whitespace_in_xff_kette_parst_erste_ip_sauber() -> None:
+    client, _, _ = _client()
+
+    response = client.post(
+        "/api/posts",
+        json={"text": "whitespace"},
+        headers={"X-Forwarded-For": " 192.168.111.42 , 172.22.0.1 "},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["post"]["sender"] == "192.168.111.42"
+
+
 # --- Ungültige Bodies (QA-Loop 1: Design §1 Z.45 — ungültiger Body → 400) ----
 
 
