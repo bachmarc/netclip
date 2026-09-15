@@ -39,6 +39,15 @@ Strikte Trennung (Muster: `intesis_modbus/CLAUDE.md`):
 
 ## Workflow
 
+0. **Planungs-Checkpoint (PFLICHT vor jedem Dev/QA-Start)** — Reihenfolge für jede
+   Anforderung/Änderung (auch Replannings!):
+   1. **Planungsphase (architect):** Requirements/Design/Stories entwerfen, Doku anpassen.
+   2. **Review-Checkpoint (User):** architect stellt dem User die konkrete Umsetzungs-
+      übersicht vor — WAS wird implementiert (Stories + Developer Targets), WIE läuft es ab
+      (Wellen, Reihenfolge, Fakes, Testkriterien). **Dev+QA starten NICHT ohne explizites
+      User-Go** („passt"/„go"). Rückmeldungen fließen zurück in die Planung (Schleife).
+   3. **Erst dann:** Dev + QA gemäß freigegebenem Plan.
+   - Gilt auch für "kleine" Änderungen und Bugfix-Loops — kein implizites Starten.
 1. **Stories**: `STORIES.md` (Index) + `docs/stories/<phase>-<id>-<slug>.md`.
    Jede Story verlinkt Traceability (`REQ-XXX` + Design-Abschnitt) und enthält
    **Testkriterien, die VOR Implementierung existieren (Fake-basiert)**.
