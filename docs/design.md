@@ -23,8 +23,8 @@ class PostBoard:
     def clear_last(self) -> None: ...
     def get_posts(self, since_id: int = 0) -> list[dict]:
         """Posts mit id > since_id, aufsteigend. since_id=0 → alle."""
-    def consume_cleared(self) -> bool:
-        """True genau einmal nach clear_all/clear_last (Clear-Signal für §4), danach False."""
+    def clear_version(self) -> int:
+        """Monotoner Zähler, inkrementiert bei jedem clear_all/clear_last (REQ-019)."""
     def simuliere_post(self, text: str = "test", sender: str = "test-ip",
                       now: datetime | None = None) -> dict:
         """Test-Helper: fügt Post hinzu (Default-Zeit 2026-01-01T12:00 UTC, deterministisch)."""
@@ -82,13 +82,14 @@ Keine Datenbank, keine Dateien, keine Session. Restart = leer (REQ-007).
 | Route | Methode | Body/Query | Antwort | Fehler |
 |-------|---------|-----------|---------|--------|
 | `/` | GET | — | `index.html` | — |
-| `/api/posts` | GET | `?since_id=<int>` (optional) | `{"posts": [...], "cleared": bool}` | — |
+| `/api/posts` | GET | `?since_id=<int>` (optional) | `{"posts": [...], "clear_version": int}` | — |
 | `/api/posts` | POST | `{"text": str}` | `{"post": {...}}` | 400: leer / zu lang |
 | `/api/clear` | POST | `{"mode": "all"\|"last"}` | `{"cleared": true}` | 400: ungültiger mode |
 
-**Clear-Signalisierung:** Jedes `clear` setzt intern ein Cleared-Flag; `GET /api/posts`
-liefert `cleared: true`, wenn seit letztem Abruf gecleart wurde → Client leert seine Liste.
-`since_id`-Cursor danach zurücksetzen (nächster Abruf: `since_id=0`).
+**Clear-Signalisierung (REQ-019, fix Designfehler consume-once):** Jedes `clear`
+inkrementiert einen monotonen `clear_version`-Zähler im Core. `GET /api/posts` liefert
+`clear_version` mit. Clients speichern ihre letzte Version; weicht sie ab → Liste leeren,
+`last_id = 0`, neu laden. Damit sehen **alle** Clients jeden Clear (statt nur des ersten Pollers).
 
 ## 4a. Frontend-Verhalten (Polling & Chat-Layout)
 
@@ -100,7 +101,7 @@ liefert `cleared: true`, wenn seit letztem Abruf gecleart wurde → Client leert
   wird nicht weggerissen). Beim ersten Laden: ans untere Ende springen.
 - Initial: `GET /api/posts` (alles), merken `last_id`.
 - Poll alle 2 s: `GET /api/posts?since_id=last_id`.
-  - `cleared: true` → Liste leeren, `last_id = 0`.
+  - `clear_version` weicht vom gespeicherten Wert ab → Liste leeren, `last_id = 0`, neu laden.
   - Sonst neue Posts **unten anhängen**, `last_id` aktualisieren, Auto-Scroll-Regel anwenden.
 - Absenden/„Clear"-Buttons → `POST` → sofortiger Poll (kein Warten aufs Intervall).
 - **Text-Markierung (REQ-014):** Kopfzeile jedes Posts (Zeit + IP) erhält
