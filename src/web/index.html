@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NetClip</title>
+<style>
+  :root { color-scheme: light dark; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, sans-serif;
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 1rem;
+    line-height: 1.4;
+  }
+  h1 { margin: 0 0 0.25rem; }
+  .unterzeile { margin: 0 0 1rem; color: #666; }
+  #eingabe {
+    width: 100%;
+    min-height: 5rem;
+    resize: vertical;
+    font: inherit;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  button { font: inherit; padding: 0.4rem 0.9rem; cursor: pointer; }
+  #senden { font-weight: bold; }
+  .leiste { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+  #status { color: #b00020; min-height: 1.4em; margin: 0.5rem 0; }
+  ul#liste { list-style: none; padding: 0; margin: 0; }
+  ul#liste > li {
+    border: 1px solid #ccc;
+    border-radius: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .kopf { color: #666; font-size: 0.85rem; margin-bottom: 0.25rem; }
+  .text { white-space: pre-wrap; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<h1>NetClip</h1>
+<p class="unterzeile">LAN-Zwischenablage: Text posten, von anderen im Netz lesen. Aktualisiert sich automatisch alle 2 Sekunden.</p>
+
+<textarea id="eingabe" placeholder="Text einfügen …"></textarea>
+<div class="leiste">
+  <button id="senden" type="button">Senden</button>
+  <button id="clear-all" type="button">Clear all</button>
+  <button id="clear-last" type="button">Clear last</button>
+</div>
+<div id="status" role="alert" aria-live="polite"></div>
+
+<ul id="liste"></ul>
+
+<script>
+"use strict";
+
+const POLL_MS = 2000;
+let lastId = 0;
+
+const liste = document.getElementById("liste");
+const eingabe = document.getElementById("eingabe");
+const statusDiv = document.getElementById("status");
+
+function zeigeFehler(meldung) {
+  statusDiv.textContent = meldung;
+}
+
+function zeigeZeit(iso) {
+  const m = iso.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/
+  );
+  if (!m) return iso;
+  return m[3] + "." + m[2] + "." + m[1] + " " + m[4] + ":" + m[5] + ":" + m[6];
+}
+
+function postAnzeigen(post) {
+  const li = document.createElement("li");
+  const kopf = document.createElement("div");
+  kopf.className = "kopf";
+  kopf.textContent = zeigeZeit(post.timestamp) + " · " + post.sender;
+  const text = document.createElement("div");
+  text.className = "text";
+  text.textContent = post.text;
+  li.appendChild(kopf);
+  li.appendChild(text);
+  liste.prepend(li); // neueste oben
+}
+
+function listeLeeren() {
+  liste.textContent = "";
+  lastId = 0;
+}
+
+async function poll() {
+  try {
+    const antwort = await fetch("/api/posts?since_id=" + lastId);
+    const daten = await antwort.json();
+    if (daten.cleared === true) {
+      listeLeeren();
+      await ladeAlles();
+      return;
+    }
+    for (const post of daten.posts) {
+      postAnzeigen(post);
+      if (post.id > lastId) lastId = post.id;
+    }
+  } catch (err) {
+    zeigeFehler("Netzwerkfehler beim Abrufen der Beiträge.");
+  }
+}
+
+async function ladeAlles() {
+  try {
+    const antwort = await fetch("/api/posts");
+    const daten = await antwort.json();
+    if (daten.cleared === true) {
+      listeLeeren();
+    }
+    for (const post of daten.posts) {
+      postAnzeigen(post);
+      if (post.id > lastId) lastId = post.id;
+    }
+  } catch (err) {
+    zeigeFehler("Netzwerkfehler beim Abrufen der Beiträge.");
+  }
+}
+
+async function senden() {
+  zeigeFehler("");
+  try {
+    const antwort = await fetch("/api/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: eingabe.value }),
+    });
+    if (!antwort.ok) {
+      const daten = await antwort.json().catch(() => null);
+      zeigeFehler(
+        (daten && daten.error) ? daten.error : "Senden fehlgeschlagen (" + antwort.status + ")."
+      );
+      return; // Text bleibt im Feld
+    }
+    eingabe.value = "";
+    await poll(); // sofortiger Poll, kein Warten aufs Intervall
+  } catch (err) {
+    zeigeFehler("Netzwerkfehler beim Senden.");
+  }
+}
+
+async function clear(mode) {
+  zeigeFehler("");
+  try {
+    const antwort = await fetch("/api/clear", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mode: mode }),
+    });
+    if (!antwort.ok) {
+      const daten = await antwort.json().catch(() => null);
+      zeigeFehler(
+        (daten && daten.error) ? daten.error : "Löschen fehlgeschlagen (" + antwort.status + ")."
+      );
+      return;
+    }
+    await poll(); // sofortiger Poll, kein Warten aufs Intervall
+  } catch (err) {
+    zeigeFehler("Netzwerkfehler beim Löschen.");
+  }
+}
+
+document.getElementById("senden").addEventListener("click", senden);
+document.getElementById("clear-all").addEventListener("click", () => clear("all"));
+document.getElementById("clear-last").addEventListener("click", () => clear("last"));
+
+ladeAlles();
+setInterval(poll, POLL_MS);
+</script>
+</body>
+</html>
