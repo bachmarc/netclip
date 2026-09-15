@@ -43,6 +43,22 @@ docker compose up        # baut Image, startet Container → http://<host>:8000
 Der Container läuft als non-root User; `restart: unless-stopped` hält NetClip
 über Neustarts hinweg aktiv.
 
+### Docker (Registry-Image, ohne Repo-Clone)
+
+Bei jedem Push auf `main` baut die CI das Image und pusht es nach
+`ghcr.io/bachmarc/netclip` (Tags: `latest` + Commit-SHA). Auf LAN-Rechnern
+reicht daher die `docker-compose.yml` — kein Repo-Clone, kein lokaler Build:
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+**Hinweis zur ersten Inbetriebnahme:** Das Paket ist anfangs privat. Ein Pull
+erfordert, dass die Paket-Sichtbarkeit auf **public** gestellt wurde — einmalig
+unter *GitHub → Packages → netclip → Package settings → Change visibility*.
+(Der Pull selbst authentifiziert sich sonst gegen die Registry; public stellt
+das Paket jedem im LAN ohne Login bereit.)
+
 ### Manuell (Python 3.12+)
 
 ```bash

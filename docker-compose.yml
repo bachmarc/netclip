@@ -1,6 +1,7 @@
 # NetClip — LAN-Zwischenablage (Story 03-01, Design §6)
 services:
   netclip:
+    image: ghcr.io/bachmarc/netclip:latest
     build: .
     ports:
       - "8000:8000"
