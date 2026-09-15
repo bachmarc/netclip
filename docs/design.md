@@ -86,12 +86,18 @@ Keine Datenbank, keine Dateien, keine Session. Restart = leer (REQ-007).
 liefert `cleared: true`, wenn seit letztem Abruf gecleart wurde → Client leert seine Liste.
 `since_id`-Cursor danach zurücksetzen (nächster Abruf: `since_id=0`).
 
-## 4a. Frontend-Verhalten (Polling)
+## 4a. Frontend-Verhalten (Polling & Chat-Layout)
 
+- **Layout (REQ-013):** Eingabebereich (Textarea + „Senden" + „Clear all"/„Clear last")
+  steht **unten fixiert** (immer sichtbar). Darüber: scrollbare Post-Liste.
+  Posts **chronologisch** — älteste oben, **neueste ganz unten** (Chat-Muster).
+- **Auto-Scroll-Regel:** Bei neuen Posts scrollt die Liste ans untere Ende — aber **nur,
+  wenn der Nutzer am unteren Ende ist** (wer hochgescrollt hat, um Altes zu lesen/kopieren,
+  wird nicht weggerissen). Beim ersten Laden: ans untere Ende springen.
 - Initial: `GET /api/posts` (alles), merken `last_id`.
 - Poll alle 2 s: `GET /api/posts?since_id=last_id`.
   - `cleared: true` → Liste leeren, `last_id = 0`.
-  - Sonst neue Posts oben einfügen, `last_id` aktualisieren.
+  - Sonst neue Posts **unten anhängen**, `last_id` aktualisieren, Auto-Scroll-Regel anwenden.
 - Absenden/„Clear"-Buttons → `POST` → sofortiger Poll (kein Warten aufs Intervall).
 
 ## 5. Fehlerbehandlung

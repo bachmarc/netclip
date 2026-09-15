@@ -30,6 +30,7 @@ RAM-only: Nach Restart (oder „Clear all") ist alles weg. Kein Langzeit-Chat-Ar
 | REQ-010 | Max. 3000 Posts (FIFO, älteste fliegen raus); Default per ENV `MAX_POSTS` konfigurierbar | Muss |
 | REQ-011 | Max. 100.000 Zeichen pro Post (~mehrere DIN-A4-Seiten); Default per ENV `MAX_TEXT_LENGTH` konfigurierbar; Überschreiten → Fehler mit Hinweis | Muss |
 | REQ-012 | Polling-Optimierung: Client fragt nur Posts seit letzter bekannter ID ab (`since_id`) | Muss |
+| REQ-013 | Chat-Layout: Eingabebereich (Textfeld + Buttons) **unten fixiert**; Post-Liste chronologisch — **neueste ganz unten**; Liste scrollbar zum Hochscrollen älterer Posts; bei neuen Posts Auto-Scroll ans untere Ende (nur wenn Nutzer nicht manuell hochgescrollt hat) | Muss |
 
 ## Nicht-funktionale Requirements
 
