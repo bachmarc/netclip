@@ -12,6 +12,7 @@ Liste (neue Posts unten via append), fixierter Eingabebereich unten, Auto-Scroll
 """
 
 from pathlib import Path
+import re
 
 from fastapi.testclient import TestClient
 
@@ -112,3 +113,38 @@ def test_web_index_html_layout_eingabebereich_unten_fixiert() -> None:
     assert layout_matcher, "fixierter Eingabebereich (sticky/fixed) fehlt"
     # Scrollbarer Post-Listen-Container:
     assert "overflow-y" in content, "scrollbare Post-Liste (overflow-y) fehlt"
+
+
+# ---------------------------------------------------------------------------
+# Story 05-01: Copy-freundliche Text-Markierung (REQ-014, Design §4a)
+# ---------------------------------------------------------------------------
+
+
+def test_web_index_html_kopfzeile_nicht_markierbar_text_markierbar() -> None:
+    # Statischer Contract-Check: `user-select: none` (o. ohne Leerzeichen) kommt im
+    # CSS vor UND ist dem Kopfzeilen-Selektor (`.kopf`, Zeit + IP) zugeordnet —
+    # NICHT global, NICHT auf dem Post-Text (`.text`), der markierbar bleiben muss.
+    content = WEB_INDEX.read_text(encoding="utf-8")
+
+    treffer = re.findall(r"user-select\s*:\s*none", content)
+    assert treffer, "user-select: none fehlt (Kopfzeile nicht markierbar)"
+    assert len(treffer) == 1, (
+        "user-select: none genau 1× (nur Kopfzeilen-Regel, nicht global/Text)"
+    )
+
+    # Zuordnung: Regel-Block mit user-select enthält den Kopfzeilen-Selektor.
+    regel = re.search(r"([.#][\w#>\s.,:+-]*?)\{[^}]*user-select\s*:\s*none[^}]*\}", content)
+    assert regel is not None, (
+        "user-select: none muss in einem CSS-Regelblock stehen"
+    )
+    assert ".kopf" in regel.group(1), (
+        "user-select: none muss der Post-Kopfzeile (.kopf) zugeordnet sein"
+    )
+
+    # Negativ-Check: Post-Text (.text) bleibt markierbar — seine Regel darf kein
+    # user-select: none enthalten.
+    text_regel = re.search(r"\.text\s*\{([^}]*)\}", content)
+    assert text_regel is not None, "Post-Text-Regel (.text) fehlt"
+    assert "user-select" not in text_regel.group(1), (
+        "Post-Text (.text) darf nicht user-select: none haben — Text bleibt markierbar"
+    )
