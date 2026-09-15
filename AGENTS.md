@@ -28,6 +28,9 @@ Strikte Trennung (Muster: `intesis_modbus/CLAUDE.md`):
 ## Git-Konvention
 
 - Jede Story = eigener Branch: `feature/<story-id>-<slug>` (z.B. `feature/01-02-cards-crud`).
+- **Worktree-Pflicht:** Jede Developer-Session arbeitet in einem eigenen Git-Worktree
+  `.worktrees/<story-id>-<slug>/` (angelegt vom architect). Das Hauptverzeichnis bleibt
+  **immer auf `main`** (Merges, Hygiene). Zwei Agenten teilen NIE ein Working Directory.
 - **Kein direkter Push auf `main`.** Merge nur nach QA-Gate (PASS).
 - Commit-Body enthält Metadaten für QA-Requeue:
   ```

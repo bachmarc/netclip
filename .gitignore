@@ -12,6 +12,9 @@ htmlcov/
 dist/
 build/
 
+# Git-Worktrees (Developer-Sessions)
+.worktrees/
+
 # Environment & Secrets
 .env
 *.local.yaml
