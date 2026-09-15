@@ -29,7 +29,7 @@
 | [05-01-clean-copy-selection](docs/stories/05-01-clean-copy-selection.md) | Copy ohne Zeitstempel/IP (`user-select: none`) | Erledigt (QA-PASS, Loop 1; User-Go nach Planungs-Checkpoint) | `feature/05-01-clean-copy-selection` | REQ-014 → §4a |
 | [06-01-send-guard-autogrow](docs/stories/06-01-send-guard-autogrow.md) | Send-Guard + Auto-Grow-Textarea | Erledigt (QA-PASS, Loop 1; User-Go nach Planungs-Checkpoint) | `feature/06-01-send-guard-autogrow` | REQ-015, REQ-016 → §4a |
 | [07-01-ci-fix](docs/reviews/00-01-setup.md) | CI grün: ruff-Pin + Node-24-Actions | Erledigt (direkte Umsetzung nach User-Go; CI-Verifikation grün) | `main` (8d38bda) | CI-Stabilität → §6 |
-| [08-01-ghcr-push](docs/stories/08-01-ghcr-push.md) | GHCR-Registry-Push (pullbares Image) | Geplant | `feature/08-01-ghcr-push` | REQ-017 → §6 |
+| [08-01-ghcr-push](docs/stories/08-01-ghcr-push.md) | GHCR-Registry-Push (pullbares Image) | Erledigt (QA-PASS, Loop 1; User-Go; Registry-Pull verifiziert) | `feature/08-01-ghcr-push` | REQ-017 → §6 |
 
 ## QA-Protokolle
 
