@@ -9,6 +9,10 @@ Deckt Story-Testkriterien + Design §4a (Polling-Contract) ab (REQ-002, REQ-006)
 Story 04-01 (REQ-013, Design §4a revised): Chat-Layout-Contract-Tests — chronologische
 Liste (neue Posts unten via append), fixierter Eingabebereich unten, Auto-Scroll mit
 „am unteren Ende"-Erkennung.
+
+Story 06-01 (REQ-015, REQ-016, Design §4a revised): Send-Guard (Button-Disable während
+des laufenden POST-Requests) + Auto-Grow-Textarea (input-Listener, scrollHeight,
+max-height 40vh, Reset nach erfolgreichem Senden).
 """
 
 from pathlib import Path
@@ -148,3 +152,110 @@ def test_web_index_html_kopfzeile_nicht_markierbar_text_markierbar() -> None:
     assert "user-select" not in text_regel.group(1), (
         "Post-Text (.text) darf nicht user-select: none haben — Text bleibt markierbar"
     )
+
+
+# ---------------------------------------------------------------------------
+# Story 06-01: Send-Guard + Auto-Grow-Textarea (REQ-015, REQ-016, Design §4a)
+# ---------------------------------------------------------------------------
+
+
+def test_web_index_html_send_guard_disabled_waehrend_request() -> None:
+    # Statischer Contract-Check (REQ-015): Der Senden-Button wird im senden()-Pfad
+    # VOR dem `await fetch` deaktiviert und danach/im finally wieder aktiviert —
+    # Doppelklicks erzeugen so keinen zweiten POST. Reihenfolge: disable < fetch <
+    # enable-Block, und die Reaktivierung liegt im finally der Try-Struktur.
+    content = WEB_INDEX.read_text(encoding="utf-8")
+
+    senden_match = re.search(
+        r"async function senden\(\)\s*\{(?:(?!\nasync function )[\s\S])*",
+        content,
+    )
+    assert senden_match is not None, "senden()-Funktion fehlt"
+    senden = senden_match.group(0)
+
+    # Disable-Matcher: `disabled = true` (mit/ohne Leerzeichen um `=`).
+    disable_matcher = re.search(r"\.disabled\s*=\s*true", senden)
+    assert disable_matcher, (
+        "senden() muss den Button deaktivieren (disabled = true) vor dem fetch"
+    )
+    # Reaktivierungs-Matcher: `disabled = false`.
+    enable_matcher = re.search(r"\.disabled\s*=\s*false", senden)
+    assert enable_matcher, (
+        "senden() muss den Button nach Abschluss reaktivieren (disabled = false)"
+    )
+    # Reihenfolge: Disable VOR dem fetch-Aufruf, Enable NACH dem fetch.
+    fetch_pos = senden.index("await fetch(")
+    assert disable_matcher.start() < fetch_pos, (
+        "disabled = true muss VOR dem await fetch gesetzt werden"
+    )
+    assert enable_matcher.start() > fetch_pos, (
+        "disabled = false muss NACH dem await fetch (finally/Ende) erfolgen"
+    )
+    # Reaktivierung in jedem Fall: finally-Block innerhalb von senden().
+    assert re.search(r"\}?\s*finally\s*\{", senden), (
+        "Reaktivierung muss im finally-Block erfolgen (auch bei Fehler)"
+    )
+    assert enable_matcher.start() > senden.index("finally {"), (
+        "disabled = false muss im finally-Block stehen"
+    )
+
+
+def test_web_index_html_auto_grow_textarea() -> None:
+    # Statischer Contract-Check (REQ-016): input-Listener auf der Textarea passt die
+    # Höhe per scrollHeight an; CSS begrenzt mit max-height (40vh) und erlaubt
+    # internen Scroll; nach erfolgreichem Senden Reset auf Ausgangshöhe.
+    content = WEB_INDEX.read_text(encoding="utf-8")
+
+    # input-EventListener auf der Textarea (#eingabe).
+    assert re.search(r"eingabe\.addEventListener\(\s*[\"']input[\"']", content), (
+        "input-EventListener auf der Textarea (#eingabe) fehlt"
+    )
+    # Höhen-Anpassung: height = auto, dann height = scrollHeight + "px".
+    assert re.search(r"style\.height\s*=\s*[\"']auto[\"']", content), (
+        "Höhen-Anpassung (style.height = 'auto') fehlt"
+    )
+    assert re.search(r"style\.height\s*=\s*[^;]+\.scrollHeight\s*\+\s*[\"']px[\"']", content), (
+        "Höhen-Anpassung per scrollHeight + 'px' fehlt"
+    )
+    # CSS-Begrenzung: max-height ~40vh (Deckelung), overflow-y: auto (interner
+    # Scroll darüber) und min-height als Ausgangshöhe (~2 Zeilen).
+    css_match = re.search(r"#eingabe\s*\{([^}]*)\}", content)
+    assert css_match is not None, "Textarea-Regel (#eingabe) fehlt"
+    css = css_match.group(1)
+    assert re.search(r"max-height\s*:\s*40vh", css), (
+        "max-height: 40vh als Deckelung fehlt (#eingabe)"
+    )
+    assert re.search(r"overflow-y\s*:\s*auto", css), (
+        "overflow-y: auto für internen Scroll fehlt (#eingabe)"
+    )
+    assert re.search(r"min-height\s*:\s*[\d.]+rem", css), (
+        "min-height (Ausgangshöhe ~2 Zeilen) fehlt (#eingabe)"
+    )
+    # Reset auf Ausgangshöhe NACH erfolgreichem Senden: direkt im senden()-Erfolgs-
+    # Pfad (style.height) ODER via Reset-Funktion, deren Body style.height setzt.
+    senden_match = re.search(
+        r"async function senden\(\)\s*\{(?:(?!\nasync function )[\s\S])*",
+        content,
+    )
+    assert senden_match is not None, "senden()-Funktion fehlt"
+    senden = senden_match.group(0)
+    erfolg = senden.index('eingabe.value = "";')
+    erfolgspfad = senden[erfolg:]
+    if "style.height" in erfolgspfad:
+        pass  # direkter Reset im Erfolgs-Pfad
+    else:
+        aufruf = re.search(r"(\w+)\(\)", erfolgspfad)
+        assert aufruf is not None, (
+            "Höhen-Reset im Erfolgs-Pfad fehlt (direkt oder via Reset-Funktion)"
+        )
+        funktionsname = aufruf.group(1)
+        definition = re.search(
+            r"function\s+" + re.escape(funktionsname) + r"\s*\([^)]*\)\s*\{([^}]*)\}",
+            content,
+        )
+        assert definition is not None, (
+            f"Reset-Funktion {funktionsname}() fehlt"
+        )
+        assert "style.height" in definition.group(1), (
+            "Reset-Funktion muss die Höhe zurücksetzen (style.height)"
+        )

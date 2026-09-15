@@ -47,6 +47,8 @@
   #eingabe {
     width: 100%;
     min-height: 5rem;
+    max-height: 40vh;
+    overflow-y: auto;
     resize: vertical;
     font: inherit;
     padding: 0.5rem;
@@ -99,6 +101,18 @@ function scrolleAnsEnde() {
 
 function zeigeFehler(meldung) {
   statusDiv.textContent = meldung;
+}
+
+// Auto-Grow (REQ-016): Höhe anpassen (Ausgangshöhe = CSS min-height), Deckelung
+// via max-height (40vh), darüber interner Scroll (overflow-y: auto).
+const EINGABE_AUSGANGSHOEHE = "5rem";
+function passeEingabeHoeheAn() {
+  eingabe.style.height = "auto";
+  eingabe.style.height = eingabe.scrollHeight + "px";
+}
+
+function setzeEingabeHoeheZurueck() {
+  eingabe.style.height = EINGABE_AUSGANGSHOEHE;
 }
 
 function zeigeZeit(iso) {
@@ -168,6 +182,8 @@ async function ladeAlles() {
 
 async function senden() {
   zeigeFehler("");
+  const sendenButton = document.getElementById("senden");
+  sendenButton.disabled = true; // Send-Guard (REQ-015): kein Doppel-Post
   try {
     const antwort = await fetch("/api/posts", {
       method: "POST",
@@ -182,9 +198,12 @@ async function senden() {
       return; // Text bleibt im Feld
     }
     eingabe.value = "";
+    setzeEingabeHoeheZurueck(); // Auto-Grow-Reset (REQ-016): Ausgangshöhe
     await poll(); // sofortiger Poll, kein Warten aufs Intervall
   } catch (err) {
     zeigeFehler("Netzwerkfehler beim Senden.");
+  } finally {
+    sendenButton.disabled = false; // Reaktivierung in jedem Fall
   }
 }
 
@@ -212,6 +231,7 @@ async function clear(mode) {
 document.getElementById("senden").addEventListener("click", senden);
 document.getElementById("clear-all").addEventListener("click", () => clear("all"));
 document.getElementById("clear-last").addEventListener("click", () => clear("last"));
+eingabe.addEventListener("input", passeEingabeHoeheAn); // Auto-Grow (REQ-016)
 
 ladeAlles();
 setInterval(poll, POLL_MS);
