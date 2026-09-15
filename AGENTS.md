@@ -1,8 +1,14 @@
-# AGENTS.md — Repo-Leitplanken
-
-> **Entwurf — wird im Dialog mit dem User finalisiert (Phase 1).**
+# AGENTS.md — Repo-Leitplanken (NetClip)
 
 Dieses Dokument definiert Leitplanken für alle Agenten (architect, developer, qa-manager) in diesem Repo.
+
+## Projekt: NetClip (LAN-Zwischenablage)
+
+- **Stack**: Python 3.12, FastAPI + uvicorn, statisches HTML/JS-Frontend, Docker.
+- **Kernregel**: `src/core/board.py` (`PostBoard`) kennt kein FastAPI, kein HTTP, keine Uhr.
+  Zeit kommt als Parameter (`now`), Konfiguration (`max_posts`, `max_text_length`) per Konstruktor.
+- **RAM-only**: Keine Persistenz, keine Auto-Clear-Timer (nur manuelles Clear all / Clear last).
+- UI-Texte Deutsch, Code/Bezeichner Englisch.
 
 ## Architektur: Funktion vs Konnektivität
 
@@ -11,12 +17,13 @@ Strikte Trennung (Muster: `intesis_modbus/CLAUDE.md`):
 - **`src/core/`** — reine Logik/Algorithmen.
   - **Null Imports** aus Framework/IO/HA/DB/API.
   - Bekommt alle Daten als Parameter, gibt Dicts/Primitives zurück.
-  - Vollständig unit-testbar, enthält Simulation-Helper (z.B. `simuliere_aktiv()`).
+  - Vollständig unit-testbar, enthält Simulation-Helper (`simuliere_post()`).
 - **`src/adapters/`** — dünne Wrapper (3-10 Zeilen pro Methode).
-  - Liest Sensoren/APIs/DB, **delegiert alle Entscheidungen an Core**, schreibt zurück.
+  - Extrahiert Request-Daten, **delegiert alle Entscheidungen an Core**, gibt HTTP-Antwort.
   - Timer/Listener/Scheduler ausschließlich hier.
-- **Fakes sind Pflicht** für jede externe Abhängigkeit: `tests/fakes/` bzw. `src/adapters/fakes/`.
-  - Core-Tests laufen **ohne** echte Systeme. Ist Core nicht ohne Fakes testbar → Designfehler.
+- **Fakes sind Pflicht** für jede externe Abhängigkeit: `tests/fakes/`.
+  - Core-Tests laufen **ohne** echte Systeme (`FakeClock`, FastAPI `TestClient` statt Sockets).
+  - Ist Core nicht ohne Fakes testbar → Designfehler.
 
 ## Git-Konvention
 
