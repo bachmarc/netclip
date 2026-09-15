@@ -184,3 +184,46 @@ def test_board_injektion_app_state_board_ist_dasselbe_objekt() -> None:
     # Injiziertes Board ist live wirksam: über API gepostet, im Board-Objekt sichtbar.
     client.post("/api/posts", json={"text": "injiziert"})
     assert [p["text"] for p in board.get_posts()] == ["injiziert"]
+
+
+# --- Ungültige Bodies (QA-Loop 1: Design §1 Z.45 — ungültiger Body → 400) ----
+
+
+def test_post_api_posts_malformed_json_liefert_400_mit_error_key() -> None:
+    client, _, _ = _client()
+
+    response = client.post(
+        "/api/posts", content=b"{invalid", headers={"Content-Type": "application/json"}
+    )
+
+    assert response.status_code == 400
+    assert "error" in response.json()
+
+
+def test_post_api_posts_ohne_text_key_liefert_400_mit_error_key() -> None:
+    client, _, _ = _client()
+
+    response = client.post("/api/posts", json={})
+
+    assert response.status_code == 400
+    assert "error" in response.json()
+
+
+def test_post_api_posts_mit_nicht_text_typ_liefert_400_mit_error_key() -> None:
+    client, _, _ = _client()
+
+    response = client.post("/api/posts", json={"text": 123})
+
+    assert response.status_code == 400
+    assert "error" in response.json()
+
+
+def test_post_api_clear_malformed_json_liefert_400_mit_error_key() -> None:
+    client, _, _ = _client()
+
+    response = client.post(
+        "/api/clear", content=b"{invalid", headers={"Content-Type": "application/json"}
+    )
+
+    assert response.status_code == 400
+    assert "error" in response.json()

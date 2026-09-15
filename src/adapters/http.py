@@ -7,6 +7,7 @@ Kein Socket im Test-Pfad: ``fastapi.testclient.TestClient`` läuft ohne lauschen
 
 from __future__ import annotations
 
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
@@ -60,7 +61,17 @@ def create_app(
     @app.post("/api/posts")
     async def add_post(request: Request) -> dict:
         """Fügt Post hinzu; delegiert Validierung an Core (ValueError → 400)."""
-        text = (await request.json()).get("text")
+        try:
+            body = await request.json()
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=400, detail="Ungültiges JSON im Body."
+            ) from exc
+        text = body.get("text") if isinstance(body, dict) else None
+        if not isinstance(text, str):
+            raise HTTPException(
+                status_code=400, detail='Body muss {"text": str} enthalten.'
+            )
         try:
             return {"post": board.add_post(text, request.client.host, now_fn())}
         except ValueError as exc:
@@ -69,7 +80,13 @@ def create_app(
     @app.post("/api/clear")
     async def clear(request: Request) -> dict:
         """Cleared Board (mode ``all``/``last``); ungültiger Mode/Body → 400."""
-        mode = (await request.json()).get("mode")
+        try:
+            body = await request.json()
+        except json.JSONDecodeError as exc:
+            raise HTTPException(
+                status_code=400, detail="Ungültiges JSON im Body."
+            ) from exc
+        mode = body.get("mode") if isinstance(body, dict) else None
         if mode == "all":
             board.clear_all()
         elif mode == "last":
