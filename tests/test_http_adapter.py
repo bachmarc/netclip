@@ -89,34 +89,47 @@ def test_get_api_posts_mit_since_id_liefert_nur_neuere_posts() -> None:
 # --- POST /api/clear ---------------------------------------------------------
 
 
-def test_clear_all_liefert_cleared_flag_genau_einmal() -> None:
+def test_clear_all_inkrementiert_clear_version_fuer_alle_clients() -> None:
     client, _, _ = _client()
     client.post("/api/posts", json={"text": "eins"})
     client.post("/api/posts", json={"text": "zwei"})
+
+    v0 = client.get("/api/posts").json()["clear_version"]
+    assert v0 == 0
 
     cleared = client.post("/api/clear", json={"mode": "all"})
     assert cleared.status_code == 200
     assert cleared.json() == {"cleared": True}
 
     first = client.get("/api/posts").json()
-    assert first == {"posts": [], "cleared": True}  # genau EINMAL true, Liste leer
+    assert first == {"posts": [], "clear_version": 1}
 
     second = client.get("/api/posts").json()
-    assert second == {"posts": [], "cleared": False}  # zweiter Abruf: false
+    assert second == {"posts": [], "clear_version": 1}  # zweiter Abruf: gleiche Version, nicht verbraucht
 
 
-def test_clear_last_entfernt_nur_letzten_post() -> None:
+def test_clear_last_entfernt_nur_letzten_post_und_inkrementiert_version() -> None:
     client, _, _ = _client()
     client.post("/api/posts", json={"text": "eins"})
     client.post("/api/posts", json={"text": "zwei"})
 
+    v0 = client.get("/api/posts").json()["clear_version"]
     response = client.post("/api/clear", json={"mode": "last"})
     assert response.status_code == 200
     assert response.json() == {"cleared": True}
 
     listing = client.get("/api/posts").json()
     assert [p["text"] for p in listing["posts"]] == ["eins"]
-    assert listing["cleared"] is True
+    assert listing["clear_version"] == v0 + 1
+    # zweiter GET liefert gleiche Version (kein consume-once)
+    assert client.get("/api/posts").json()["clear_version"] == v0 + 1
+
+
+def test_get_api_posts_liefert_clear_version_initial_0() -> None:
+    client, _, _ = _client()
+    assert client.get("/api/posts").json()["clear_version"] == 0
+    client.post("/api/posts", json={"text": "eins"})
+    assert client.get("/api/posts").json()["clear_version"] == 0
 
 
 def test_clear_mit_ungültigem_mode_liefert_400() -> None:

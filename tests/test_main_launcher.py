@@ -103,7 +103,7 @@ def test_build_app_liefert_funktionale_app(
     client: TestClient = TestClient(app)
     response = client.get("/api/posts")
     assert response.status_code == 200
-    assert response.json() == {"posts": [], "cleared": False}
+    assert response.json() == {"posts": [], "clear_version": 0}
 
 
 def test_build_app_env_ignoriert_nicht_numerisch(

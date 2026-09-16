@@ -173,27 +173,26 @@ def test_get_posts_seit_letztem_post_leer() -> None:
 # --- Clear all ----------------------------------------------------------------
 
 
-def test_clear_all_leert_liste_und_consume_cleared_true_dann_false() -> None:
+def test_clear_all_leert_liste_und_inkrementiert_version() -> None:
     board = PostBoard()
     clock = _clock()
 
     board.add_post("a", "test-ip", _ts(clock))
     board.add_post("b", "test-ip", _ts(clock))
 
-    assert board.get_posts() != []
-    assert board.consume_cleared() is False  # vor Clear kein Signal
+    assert board.clear_version == 0
 
     board.clear_all()
 
     assert board.get_posts() == []
-    assert board.consume_cleared() is True  # True genau einmal
-    assert board.consume_cleared() is False  # danach wieder False
+    assert board.clear_version == 1
+    assert board.clear_version == 1  # bleibt, nicht verbrauchbar
 
 
 # --- Clear last ---------------------------------------------------------------
 
 
-def test_clear_last_entfernt_nur_letzten_post_und_setzt_signal() -> None:
+def test_clear_last_entfernt_nur_letzten_post_und_inkrementiert_version() -> None:
     board = PostBoard()
     clock = _clock()
 
@@ -201,21 +200,40 @@ def test_clear_last_entfernt_nur_letzten_post_und_setzt_signal() -> None:
     board.add_post("b", "test-ip", _ts(clock))
     board.add_post("c", "test-ip", _ts(clock))
 
+    assert board.clear_version == 0
     board.clear_last()
 
     assert [p["id"] for p in board.get_posts()] == [1, 2]
-    assert board.consume_cleared() is True
-    assert board.consume_cleared() is False
+    assert board.clear_version == 1
 
 
-def test_clear_last_auf_leerem_board_setzt_signal() -> None:
+def test_clear_last_auf_leerem_board_inkrementiert_version() -> None:
     board = PostBoard()
 
+    assert board.clear_version == 0
     board.clear_last()
 
     assert board.get_posts() == []
-    assert board.consume_cleared() is True
-    assert board.consume_cleared() is False
+    assert board.clear_version == 1
+
+
+def test_clear_version_bleibt_bei_add_und_get_unveraendert() -> None:
+    board = PostBoard()
+    clock = _clock()
+    board.clear_all()
+    assert board.clear_version == 1
+    board.add_post("x", "test-ip", _ts(clock))
+    assert board.clear_version == 1
+    board.get_posts()
+    assert board.clear_version == 1
+
+
+def test_clear_version_inkrementiert_bei_zweitem_clear() -> None:
+    board = PostBoard()
+    board.clear_all()
+    assert board.clear_version == 1
+    board.clear_last()
+    assert board.clear_version == 2
 
 
 def test_get_posts_nach_clear_all_und_neuem_add_id_monoton() -> None:
@@ -291,4 +309,4 @@ def test_neues_board_ist_leer_ram_only() -> None:
     frisches_board = PostBoard()
 
     assert frisches_board.get_posts() == []
-    assert frisches_board.consume_cleared() is False
+    assert frisches_board.clear_version == 0

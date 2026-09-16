@@ -84,6 +84,7 @@
 const POLL_MS = 2000;
 const SCROLL_TOLERANCE_PX = 30; // Toleranz für „am unteren Ende" (Design §4a)
 let lastId = 0;
+let lastClearVersion = 0;
 
 const liste = document.getElementById("liste");
 const eingabe = document.getElementById("eingabe");
@@ -149,7 +150,8 @@ async function poll() {
   try {
     const antwort = await fetch("/api/posts?since_id=" + lastId);
     const daten = await antwort.json();
-    if (daten.cleared === true) {
+    if (daten.clear_version !== undefined && daten.clear_version !== lastClearVersion) {
+      lastClearVersion = daten.clear_version;
       listeLeeren();
       await ladeAlles();
       return;
@@ -167,8 +169,8 @@ async function ladeAlles() {
   try {
     const antwort = await fetch("/api/posts");
     const daten = await antwort.json();
-    if (daten.cleared === true) {
-      listeLeeren();
+    if (daten.clear_version !== undefined) {
+      lastClearVersion = daten.clear_version;
     }
     for (const post of daten.posts) {
       postAnzeigen(post);

@@ -64,10 +64,10 @@ def create_app(
 
     @app.get("/api/posts")
     def get_posts(since_id: int = 0) -> dict:
-        """Posts mit ``id > since_id`` plus Clear-Signal (genau einmal, Design §4)."""
+        """Posts mit ``id > since_id`` plus Clear-Version (REQ-019, alle Clients)."""
         return {
             "posts": board.get_posts(since_id=since_id),
-            "cleared": board.consume_cleared(),
+            "clear_version": board.clear_version,
         }
 
     @app.post("/api/posts")
