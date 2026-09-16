@@ -1,6 +1,6 @@
 # Story 09-02 — Clear-Sync: Version statt consume-once-Flag
 
-Status: Geplant
+Status: Erledigt (QA-PASS, Loop 1; User-Go)
 Traceability: REQ-019 → Design §4 (Clear-Signalisierung), §4a (Frontend-Polling)
 
 ## Definition
