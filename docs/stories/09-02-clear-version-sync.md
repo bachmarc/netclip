@@ -26,7 +26,11 @@ Jeder Clear wirkt für **alle** geöffneten Browser, auch für Tabs die gerade p
 - [ ] `tests/test_http_adapter.py` — `cleared`-Assertions ersetzen durch `clear_version`:
   GET liefert int, nach clear_all/clear_last inkrementiert (zweifacher GET nach Clear liefert gleiche Version, kein erneutes cleared:true)
 - [ ] `tests/test_web_page.py` — Contract: `clear_version` im JS vorhanden, kein `consume_cleared`/`cleared`-Flag mehr
-- [ ] KEINE Änderungen an: `src/adapters/main.py`, `tests/test_main_launcher.py`
+- [ ] KEINE Änderungen an: `src/adapters/main.py`
+- [ ] `tests/test_main_launcher.py` — ausschließlich 1-Zeilen-Contract-Fix erlaubt
+  (`cleared`-Assertion → `clear_version`), damit der End-to-End-Launcher-Test weiterhin den
+  aktuellen API-Vertrag prüft. (Abweichung vom ursprünglichen „KEINE Änderung" — QA-seitig als
+  gerechtfertigt eingeordnet, da Contract sich mit dem Target selbst geändert hat.)
 
 ## Akzeptanzkriterien (prüft QA-Manager)
 
